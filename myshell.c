@@ -8,37 +8,37 @@
 #include <pwd.h>
 #include <string.h>
 #include <time.h>
+#define BUFFERSIZE 255
+#define BLU   "\x1B[34m"
+#define GRN   "\x1B[32m"
+#define YEL   "\x1B[33m"
+#define RESET "\x1B[0m"
 
 void help(){
-  printf("Krystian Janowicz \n Dostepne polecenia: \n echo [arg] \n pwd \n help \n exit \n ls \n" );
+  printf(BLU " Krystian Janowicz \n Dostepne polecenia: \n echo [arg] \n pwd \n help \n exit \n ls \n" RESET);
 }
 
 void pwd(){
-  char *path;
-  path = getenv("PWD");
-  printf(" %s",path);
-  printf("\n");
+  char path[BUFFERSIZE];
+  getcwd(path,BUFFERSIZE);
+  printf(GRN " %s" RESET,path);
 }
 
 void prompt(){
   char *user;
   char *path;
-  char hostname[150];
+  char hostname[BUFFERSIZE];
 
   user = getenv( "USER" );
-  path = getenv("PWD");
-
-  memset(hostname, 0, 150);
-  gethostname(hostname, 150);
-
-  printf(user);
-  printf("@");
-  printf(hostname, "@");
-  printf(" %s",path);
+  memset(hostname, 0, BUFFERSIZE);
+  gethostname(hostname, BUFFERSIZE);
+  printf(YEL "%s@" RESET, user);
+  printf(YEL "%s" RESET, hostname);
+  pwd();
   printf(" $ ");
   }
 
-void echo(char komenda[1024]){
+int echo(char komenda[BUFFERSIZE]){
   char *sprawdzczy = " ";
   int dlugosc=strlen(komenda);
   for(int i=0;i<=dlugosc-1; i++){
@@ -48,12 +48,13 @@ void echo(char komenda[1024]){
 
     if(temp==' '){
         char *reszta = strpbrk(komenda, sprawdzczy);
-        printf("%s\n", reszta);
+        printf("%s", reszta);
+        return 0;
       }
   }
 }
 
-int exxit(char komenda[1024]){
+int exxit(char komenda[BUFFERSIZE]){
 char *sprawdzczy = " ";
 int dlugosc=strlen(komenda);
 for(int i=0;i<=dlugosc-1; i++)
@@ -75,79 +76,26 @@ return zwrocik-48; // -48 bo ASCII, nie wiedzialem jak to przekonwertowac "norma
 return 0;
 
 }
-char *getUname(int uid) {
-  struct passwd *user;
-  user = getpwuid(uid);
+void cd(char komenda[BUFFERSIZE]){
+  char *tok;
+    tok = strchr(komenda,' ');
 
-  return user->pw_name;
-};
+        char *tempTok = tok + 1;
+        tok = tempTok;
+        char *locationOfNewLine = strchr(tok, '\n');
+        if(locationOfNewLine) {
+            *locationOfNewLine = '\0';
+        }
+        chdir(tok);
+}
 
-char *getGname(int gid) {
-  struct group *grp;
-  grp = getgrgid(gid);
-
-  return grp->gr_name;
-};
-
-void getDate(const time_t time, char *date) {
-  struct tm *_date;
-  _date = localtime(&time);
-
-  strftime(date, 255, "%b %d %R", _date);
-};
-
-void getRights(int inode, char *rights) {
-  static char *RIGHTS[8] = {"---", "--x", "-w-", "-wx",
-                            "r--", "r-x", "rw-", "rwx"};
-
-  static char FILE_TYPE[7] = {'-', 'd', 'c', 'b', 's', 'p', 'l'};
-
-  int mask[4];
-  int i;
-  for (i = 3; i > 0; i--) {
-    mask[i] = inode % 010;
-    inode /= 010;
-  }
-
-  switch (inode) {
-    case 0140:
-      mask[0] = 4;
-      break;
-    case 0120:
-      mask[0] = 6;
-      break;
-    case 0100:
-      mask[0] = 0;
-      break;
-    case 060:
-      mask[0] = 3;
-      break;
-    case 040:
-      mask[0] = 1;
-      break;
-    case 020:
-      mask[0] = 2;
-      break;
-    case 010:
-      mask[0] = 5;
-      break;
-    default:
-      mask[0] = 0;
-      break;
-  }
-
-  sprintf(rights, "%c%s%s%s", FILE_TYPE[mask[0]], RIGHTS[mask[1]],
-          RIGHTS[mask[2]], RIGHTS[mask[3]]);
-};
 
 void list_dir(char *name) {
   DIR *dir;
   struct dirent *dp;
   struct stat statbuf;
-  char date[255];
-  char rights[10] = {};
 
-  printf("%s\n", name);
+
 
   if ((dir = opendir(name)) == NULL) {
     perror("Blad");
@@ -155,40 +103,37 @@ void list_dir(char *name) {
   while ((dp = readdir(dir)) != NULL) {
     if (stat(dp->d_name, &statbuf) == -1) continue;
 	if (dp->d_name[0] == '.') continue;
-    getDate(statbuf.st_mtime, date);
-    getRights(statbuf.st_mode, rights);
-    printf("%s %lu %s %s %ld %s %s\n",  rights,
-               statbuf.st_nlink,
-           getUname(statbuf.st_uid), getGname(statbuf.st_gid), statbuf.st_size,
-           date, dp->d_name);
+
+    printf(  "%s  ", dp->d_name);
   }
   closedir(dir);
 }
 
 int main(int argc, char **argv) {
 
-
-
-  char komenda[1024];
+  char komenda[BUFFERSIZE];
 
   do{
-        prompt();
-        gets(komenda);
+    prompt();
+    bzero(komenda, BUFFERSIZE);
+    fgets(komenda, BUFFERSIZE, stdin);
 
-      if (strcmp(komenda, "help") == 0){
+      if (strcmp(komenda, "help\n") == 0){
           help();
         }
-        else if (strcmp(komenda, "version") == 0){
-          version() ;
-        }
-        else if (strcmp(komenda, "ls") == 0){
+        else if (strcmp(komenda, "ls\n") == 0){
           chdir(*(++argv));
           list_dir(".");
+            printf("\n");
         }
-        else if (strcmp(komenda, "pwd") == 0){
+        else if (strcmp(komenda, "pwd\n") == 0){
           pwd() ;
+          printf("\n");
         }
-        else if ((komenda[0]=='e') && (komenda[1]=='c') && (komenda[2]=='h') && (komenda[3]=='o')){
+        else if((komenda[0]=='c') && (komenda[1]=='d')) {
+            cd(komenda);
+
+        }else if ((komenda[0]=='e') && (komenda[1]=='c') && (komenda[2]=='h') && (komenda[3]=='o')){
 
           echo(komenda);
         }
