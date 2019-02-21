@@ -15,13 +15,21 @@
 #define RESET "\x1B[0m"
 
 void help(){
-  printf(BLU " Krystian Janowicz \n Dostepne polecenia: \n echo [arg] \n pwd \n help \n exit \n ls \n" RESET);
+  printf(BLU " Krystian Janowicz \n Available commands: \n echo [arg] \n pwd \n cd [arg] \n date \n help \n exit \n ls \n" RESET);
 }
 
 void pwd(){
   char path[BUFFERSIZE];
   getcwd(path,BUFFERSIZE);
   printf(GRN " %s" RESET,path);
+}
+
+void date(){
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char s[64];
+    strftime(s, sizeof(s), "%c", tm);
+    printf("%s\n", s);
 }
 
 void prompt(){
@@ -38,47 +46,45 @@ void prompt(){
   printf(" $ ");
   }
 
-int echo(char komenda[BUFFERSIZE]){
-  char *sprawdzczy = " ";
-  int dlugosc=strlen(komenda);
-  for(int i=0;i<=dlugosc-1; i++){
+int echo(char command[BUFFERSIZE]){
+  char *checkThatSign = " ";
+  int lenght=strlen(command);
+  for(int i=0;i<=lenght-1; i++){
 
     char temp;
-    temp=komenda[i];
+    temp=command[i];
 
     if(temp==' '){
-        char *reszta = strpbrk(komenda, sprawdzczy);
-        printf("%s", reszta);
+        char *rest = strpbrk(command, checkThatSign);
+        printf("%s", rest);
         return 0;
       }
   }
 }
 
-int exxit(char komenda[BUFFERSIZE]){
-char *sprawdzczy = " ";
-int dlugosc=strlen(komenda);
-for(int i=0;i<=dlugosc-1; i++)
-{
+int exxit(char command[BUFFERSIZE]){
+char *checkThatSign = " ";
+int lenght=strlen(command);
 
-char temp;
-temp=komenda[i];
-char *sprawdzczy = " ";
-if(temp==' '){
+for(int i=0;i<=lenght-1; i++){
 
-char *reszta = strpbrk(komenda, sprawdzczy);
-int dlugoscReszty=strlen(reszta)-1;
-printf("%d\n", dlugoscReszty);
-int zwrocik=reszta[1];
-return zwrocik-48; // -48 bo ASCII, nie wiedzialem jak to przekonwertowac "normalnie"
+    char temp;
+    temp=command[i];
+    char *checkThatSign = " ";
+
+    if(temp==' '){
+          char *rest = strpbrk(command, checkThatSign);
+          return rest[1]-48;
+        }
+    else{
+          return 0;
+        }
+    }
 }
 
-}
-return 0;
-
-}
-void cd(char komenda[BUFFERSIZE]){
+void cd(char command[BUFFERSIZE]){
   char *tok;
-    tok = strchr(komenda,' ');
+    tok = strchr(command,' ');
 
         char *tempTok = tok + 1;
         tok = tempTok;
@@ -89,13 +95,10 @@ void cd(char komenda[BUFFERSIZE]){
         chdir(tok);
 }
 
-
 void list_dir(char *name) {
   DIR *dir;
   struct dirent *dp;
   struct stat statbuf;
-
-
 
   if ((dir = opendir(name)) == NULL) {
     perror("Blad");
@@ -111,38 +114,39 @@ void list_dir(char *name) {
 
 int main(int argc, char **argv) {
 
-  char komenda[BUFFERSIZE];
+  char command[BUFFERSIZE];
 
   do{
     prompt();
-    bzero(komenda, BUFFERSIZE);
-    fgets(komenda, BUFFERSIZE, stdin);
+    bzero(command, BUFFERSIZE);
+    fgets(command, BUFFERSIZE, stdin);
 
-      if (strcmp(komenda, "help\n") == 0){
+      if (strcmp(command, "help\n") == 0){
           help();
         }
-        else if (strcmp(komenda, "ls\n") == 0){
+        else if (strcmp(command, "ls\n") == 0){
           chdir(*(++argv));
           list_dir(".");
             printf("\n");
         }
-        else if (strcmp(komenda, "pwd\n") == 0){
+        else if (strcmp(command, "pwd\n") == 0){
           pwd() ;
           printf("\n");
         }
-        else if((komenda[0]=='c') && (komenda[1]=='d')) {
-            cd(komenda);
-
-        }else if ((komenda[0]=='e') && (komenda[1]=='c') && (komenda[2]=='h') && (komenda[3]=='o')){
-
-          echo(komenda);
+        else if (strcmp(command, "date\n") == 0){
+          date() ;
         }
-        else if ((komenda[0]=='e') && (komenda[1]=='x') && (komenda[2]=='i') && (komenda[3]=='t')){
-          int zwrot=exxit(komenda);
-          return zwrot;
+        else if((command[0]=='c') && (command[1]=='d')) {  cd(command); }
+  else if ((command[0]=='e') && (command[1]=='c') && (command[2]=='h') && (command[3]=='o')){
+
+          echo(command);
+        }
+        else if ((command[0]=='e') && (command[1]=='x') && (command[2]=='i') && (command[3]=='t')){
+          int r=exxit(command);
+          return r;
         }
         else{
-        printf ("nie znaleziono polecenia. uzyj: help \n" ) ;
+        printf ("ERROR: didn't found that command, try 'help' \n" ) ;
         }
 
   }while(1);
