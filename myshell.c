@@ -15,7 +15,11 @@
 #define RESET "\x1B[0m"
 
 void help(){
-  printf(BLU " Krystian Janowicz \n Available commands: \n echo [arg] \n pwd \n cd [arg] \n date \n help \n exit \n ls \n" RESET);
+  printf(BLU " Krystian Janowicz \n Available commands: \n echo [arg] \n pwd \n cd [arg] \n clear \n date \n help \n exit \n ls \n" RESET);
+}
+
+void clear(){
+  printf("\033[H\033[J");
 }
 
 void pwd(){
@@ -63,23 +67,20 @@ int echo(char command[BUFFERSIZE]){
 }
 
 int exxit(char command[BUFFERSIZE]){
-char *checkThatSign = " ";
-int lenght=strlen(command);
+
+    char *checkThatSign = " ";
+    int lenght=strlen(command);
+    char temp;
 
 for(int i=0;i<=lenght-1; i++){
 
-    char temp;
     temp=command[i];
-    char *checkThatSign = " ";
 
     if(temp==' '){
-          char *rest = strpbrk(command, checkThatSign);
-          return rest[1]-48;
-        }
-    else{
-          return 0;
+          return command[i+1]-48;
         }
     }
+      return 0;
 }
 
 void cd(char command[BUFFERSIZE]){
@@ -121,33 +122,22 @@ int main(int argc, char **argv) {
     bzero(command, BUFFERSIZE);
     fgets(command, BUFFERSIZE, stdin);
 
-      if (strcmp(command, "help\n") == 0){
-          help();
-        }
+      if (strcmp(command, "help\n") == 0){  help();  }
         else if (strcmp(command, "ls\n") == 0){
           chdir(*(++argv));
           list_dir(".");
             printf("\n");
         }
         else if (strcmp(command, "pwd\n") == 0){
-          pwd() ;
+          pwd();
           printf("\n");
         }
-        else if (strcmp(command, "date\n") == 0){
-          date() ;
-        }
+        else if (strcmp(command, "date\n") == 0){  date();  }
+        else if (strcmp(command, "clear\n") == 0){  clear();  }
         else if((command[0]=='c') && (command[1]=='d')) {  cd(command); }
-  else if ((command[0]=='e') && (command[1]=='c') && (command[2]=='h') && (command[3]=='o')){
-
-          echo(command);
-        }
-        else if ((command[0]=='e') && (command[1]=='x') && (command[2]=='i') && (command[3]=='t')){
-          int r=exxit(command);
-          return r;
-        }
-        else{
-        printf ("ERROR: didn't found that command, try 'help' \n" ) ;
-        }
+        else if ((command[0]=='e') && (command[1]=='c') && (command[2]=='h') && (command[3]=='o')){  echo(command); }
+        else if ((command[0]=='e') && (command[1]=='x') && (command[2]=='i') && (command[3]=='t')){   return exxit(command);  }
+        else{ printf ("ERROR: didn't found that command, try 'help' \n" ) ;  }
 
   }while(1);
 
