@@ -2,7 +2,7 @@
 
 Simple clone of Linux shell
 
-###Features
+### Features
 
 ```
   help
@@ -15,3 +15,5 @@ Simple clone of Linux shell
   exit
   ls
 ```
+
+Tested on Mint
