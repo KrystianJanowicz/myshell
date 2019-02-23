@@ -84,36 +84,35 @@ for(int i=0;i<=lenght-1; i++){
 }
 
 void cd(char command[BUFFERSIZE]){
-  char *tok;
-    tok = strchr(command,' ');
+    char *temp;
+    temp = strchr(command,' ');
 
-        char *tempTok = tok + 1;
-        tok = tempTok;
-        char *locationOfNewLine = strchr(tok, '\n');
+        temp = temp+1;
+        char *locationOfNewLine = strchr(temp, '\n');
         if(locationOfNewLine) {
             *locationOfNewLine = '\0';
         }
-        chdir(tok);
+        chdir(temp);
 }
 
-void list_dir(char *name) {
+void ls(char *name) {
   DIR *dir;
-  struct dirent *dp;
-  struct stat statbuf;
+   struct dirent *dp;
+   struct stat statbuf;
 
-  if ((dir = opendir(name)) == NULL) {
-    perror("Blad");
-  }
-  while ((dp = readdir(dir)) != NULL) {
-    if (stat(dp->d_name, &statbuf) == -1) continue;
-	if (dp->d_name[0] == '.') continue;
+   if ((dir = opendir(name)) == NULL) {
+     perror("Blad");
+   }
+   while ((dp = readdir(dir)) != NULL) {
+     if (stat(dp->d_name, &statbuf) == -1) continue;
+ 	if (dp->d_name[0] == '.') continue;
 
-    printf(  "%s  ", dp->d_name);
-  }
-  closedir(dir);
+     printf(  "%s  ", dp->d_name);
+   }
+   closedir(dir);
 }
 
-int main(int argc, char **argv) {
+int main() {
 
   char command[BUFFERSIZE];
 
@@ -124,9 +123,8 @@ int main(int argc, char **argv) {
 
       if (strcmp(command, "help\n") == 0){  help();  }
         else if (strcmp(command, "ls\n") == 0){
-          chdir(*(++argv));
-          list_dir(".");
-            printf("\n");
+          ls(".");
+          printf("\n");
         }
         else if (strcmp(command, "pwd\n") == 0){
           pwd();
